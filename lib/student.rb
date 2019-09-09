@@ -1,8 +1,7 @@
 require_relative "../config/environment.rb"
 
 class Student
-  attr_accessor :name, :grade
-  attr_reader :id
+  attr_accessor :name, :grade, :id
   
   def initialize(id=nil, name, grade)
     @name = name 
@@ -15,7 +14,7 @@ class Student
     CREATE TABLE IF NOT EXISTS students (
       id INTEGER PRIMARY KEY,
       name TEXT,
-      grade TEXT
+      grade INTEGER
       )
     SQL
     
@@ -57,9 +56,14 @@ class Student
   end 
   
   def self.find_by_name(name)
-    sql = "SELECT * FROM students WHERE name = ?"
-    result = DB[:conn].execute(sql, name)[0]
-    self.new(result[0], result[1], result[2])
+    sql = <<-SQL
+    SELECT * 
+    FROM students 
+    WHERE name = ?
+    SQL
+    DB[:conn].execute(sql, name).map do |row|
+    self.new_from_db(row)
+    end.first
   end
   
   def update
